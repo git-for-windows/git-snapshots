@@ -19,16 +19,8 @@ jobs:
         run: |
           set -x
 
-          start_after="$(gh api repos/git-for-windows/git-snapshots/releases/latest --jq '.tag_name')"
           mirror_one() {
-            if test -n "$start_after"
-            then
-              if test "$start_after" = "$tag_name"
-              then
-                start_after=
-              fi
-              return 0
-            fi
+            test "$tag_name" = "2.32.0.2" || return 0
 
             for file in $files
             do
@@ -251,6 +243,7 @@ jobs:
             -e 's/05b33ec50bb8fdcb5d9714e062763507348dc4f9/37f0a4afad027cf030747a1ef45537ba86162960/' \
             -e '421,427d' -e '442,448d' -e '750,756d' -e '1464,1470d' \
             -e '2650,2657d' -e '3130,3145d' -e '3490,3497d' \
+              -e '1,1463d' -e '1470q' \
             -e '/<h2/{
               # First, extract the date and the commit
               s/.*<h2 id="\([^"]*\)">\([^<]*\).*\/commit\/\([0-9a-f]*\).*/date="\2" \&\& commit=\3 \&\& /p
