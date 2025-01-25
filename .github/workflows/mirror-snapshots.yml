@@ -13,6 +13,11 @@ jobs:
         with:
           app-id: ${{ secrets.GH_APP_ID }}
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+      - uses: mxschmitt/action-tmate@v3
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        with:
+          detached: true
       - name: mirror a snapshot
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
