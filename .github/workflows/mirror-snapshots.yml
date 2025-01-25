@@ -33,11 +33,26 @@ jobs:
             done &&
 
             echo "tag_name: '$tag_name'"
-            gh release create -R ${{ github.repository }} --target "$commit" --title "$date" "$tag_name" $files ||
+            gh release create -R ${{ github.repository }} --latest=false --target "$commit" --title "$date" "$tag_name" $files ||
             exit 1
           }
 
-          curl -fLo snapshots.html https://wingit.blob.core.windows.net/files/index.html &&
+          cat >snapshots.html <<\EOF &&
+          <h2 id="2024-02-08-17:55:31">Thu, 8 Feb 2024 18:55:31 +0100<br />(commit <a href="https://github.com/git-for-windows/git/commit/7e0789dd38db6b4f0e33bc3c0e68b262886b4407">7e0789dd38db6b4f0e33bc3c0e68b262886b4407</a>)</h2>
+
+          <ul>
+          <li>Git for Windows installer: <a href="Git-prerelease-2.43.0.windows.1-26-g7e0789dd38-20240208175609-64-bit.exe">64-bit</a> and <a href="Git-prerelease-2.43.0.windows.1-26-g7e0789dd38-20240208175609-32-bit.exe">32-bit</a>.</li>
+          <li>Portable Git (self-extracting <tt>.7z</tt> archive): <a href="PortableGit-prerelease-2.43.0.windows.1-26-g7e0789dd38-20240208175609-64-bit.7z.exe">64-bit</a> and <a href="PortableGit-prerelease-2.43.0.windows.1-26-g7e0789dd38-20240208175609-32-bit.7z.exe">32-bit</a>.</li>
+          <li>MinGit: <a href="MinGit-prerelease-2.43.0.windows.1-26-g7e0789dd38-20240208175609-64-bit.zip">64-bit</a> and <a href="MinGit-prerelease-2.43.0.windows.1-26-g7e0789dd38-20240208175609-32-bit.zip">32-bit</a>.</li></ul>
+
+          <h2 id="2024-02-08-15:52:24">Thu, 8 Feb 2024 16:52:24 +0100<br />(commit <a href="https://github.com/git-for-windows/git/commit/c68910c668864f6696885ac5d21782a74201f417">c68910c668864f6696885ac5d21782a74201f417</a>)</h2>
+
+          <ul>
+          <li>Git for Windows installer: <a href="Git-prerelease-2.43.0.windows.1-19-gc68910c668-20240208155445-64-bit.exe">64-bit</a> and <a href="Git-prerelease-2.43.0.windows.1-19-gc68910c668-20240208155445-32-bit.exe">32-bit</a>.</li>
+          <li>Portable Git (self-extracting <tt>.7z</tt> archive): <a href="PortableGit-prerelease-2.43.0.windows.1-19-gc68910c668-20240208155445-64-bit.7z.exe">64-bit</a> and <a href="PortableGit-prerelease-2.43.0.windows.1-19-gc68910c668-20240208155445-32-bit.7z.exe">32-bit</a>.</li>
+          <li>MinGit: <a href="MinGit-prerelease-2.43.0.windows.1-19-gc68910c668-20240208155445-64-bit.zip">64-bit</a> and <a href="MinGit-prerelease-2.43.0.windows.1-19-gc68910c668-20240208155445-32-bit.zip">32-bit</a>.</li></ul>
+
+          EOF
 
           sed <snapshots.html > snapshots.sh -n \
             -e 's/\/34b8e39205"/\/34b8e3920561d970622b0aba122c6a8f13ad84c3"/' \
@@ -246,9 +261,6 @@ jobs:
             -e 's/\/e07d7179b0"/\/e07d7179b00fc1d868daf6c5f522e286f991b999"/' \
             -e 's/<h2 id="2021-03-10-00:00:00"></<h2 id="2021-03-10-00:00:00">Sat Mar 6 00:20:26 2021 +0000</' \
             -e 's/05b33ec50bb8fdcb5d9714e062763507348dc4f9/37f0a4afad027cf030747a1ef45537ba86162960/' \
-            -e '421,427d' -e '442,448d' -e '750,756d' -e '1464,1470d' \
-            -e '2650,2657d' -e '3130,3145d' -e '3490,3497d' \
-              -e '1,1463d' -e '1470q' \
             -e '/<h2/{
               # First, extract the date and the commit
               s/.*<h2 id="\([^"]*\)">\([^<]*\).*\/commit\/\([0-9a-f]*\).*/date="\2" \&\& commit=\3 \&\& /p
