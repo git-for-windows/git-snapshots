@@ -20,8 +20,6 @@ jobs:
           set -x
 
           mirror_one() {
-            test "$tag_name" = "2.32.0.2" || return 0
-
             for file in $files
             do
               curl -fLo "$file" https://wingit.blob.core.windows.net/files/"$file" || exit 1
