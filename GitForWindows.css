@@ -286,7 +286,10 @@ footer li {
 	color: #FFFFFF;
 	margin-bottom: 0.625em;
 	margin-top: 0.9375em;
-	padding: 0.1875em 0;
+	padding: 0.1875em .5em 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	text-align: center;
 	text-shadow: 0 -1px rgba(0, 0, 0, 0.5);
 }
