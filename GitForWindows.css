@@ -371,3 +371,8 @@ footer li {
 	clear: both;
 }
 
+.ref {
+	float: right;
+	font-size: 16px;
+	padding-right: 1em;
+}
