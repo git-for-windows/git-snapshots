@@ -79,7 +79,7 @@ const main = async (...args) => {
 
 module.exports = main
 
-if (require.main === module) main(process.argv.slice(2)).catch(e => {
+if (require.main === module) main(...process.argv.slice(2)).catch(e => {
   console.error(e)
   process.exit(1)
 })
