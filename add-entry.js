@@ -52,9 +52,11 @@ const main = async (...args) => {
     .map((e, i) => `${i < 1 ? '' : array[i + 1] ? ', ' : ' and '}<a href="${e.url}">${e.cpu.label}</a>`)
     .join('')
 
+  const id = new Date(date).toISOString()
   const insert = [
-    `<h2 id="${new Date(date).toISOString()}">`,
+    `<h2 id="${id}">`,
     date,
+    `<a class="ref" href="#${id}">&#128279;</a>`,
     '<br />',
     `(commit <a href="https://github.com/git-for-windows/git/commit/${commit}">${commit}</a>)</h2>\n`,
     '\n',
