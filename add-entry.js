@@ -52,7 +52,25 @@ const main = async (...args) => {
     .map((e, i) => `${i < 1 ? '' : array[i + 1] ? ', ' : ' and '}<a href="${e.url}">${e.cpu.label}</a>`)
     .join('')
 
-  const id = new Date(date).toISOString()
+  const fs = require('fs')
+  const sections = fs
+    .readFileSync('index.html', 'utf-8')
+    .split(/(<h2 .+<\/h2>)/)
+  if (sections.length < 3) throw new Error(`'index.html' is not in the expected format`)
+
+  const existingIDs = new Set(
+    sections
+      .filter((e, i) => (i % 2) === 1)
+      .map(e => e.replace(/^<h2 id="([^"]+).*/, '$1'))
+  );
+  const id = (() => {
+    const stamp = new Date(date).toISOString()
+    if (!existingIDs.has(stamp)) return stamp
+    for (let i = 2; ; i++) {
+      if (!existingIDs.has(`${stamp}-${i}`)) return `${stamp}-${i}`
+    }
+  })()
+
   const insert = [
     `<h2 id="${id}">`,
     date,
@@ -68,12 +86,6 @@ const main = async (...args) => {
     ].filter(e => e.urls.length > 0).map(e => `<li>${e.label}: ${listURLs(e.urls)}.</li>\n`),
     '</ul>'
   ].join('')
-
-  const fs = require('fs')
-  const sections = fs
-    .readFileSync('index.html', 'utf-8')
-    .split(/(<h2 .+<\/h2>)/)
-  if (sections.length < 3) throw new Error(`'index.html' is not in the expected format`)
 
   sections[1] = `${insert}\n\n${sections[1]}`
   fs.writeFileSync('index.html', sections.join(''))
