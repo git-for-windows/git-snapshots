@@ -73,8 +73,8 @@ const main = async (...args) => {
 
   const insert = [
     `<h2 id="${id}">`,
+    `<a class="anchor" href="#${id}">&#128279;</a>`,
     date,
-    `<a class="ref" href="#${id}">&#128279;</a>`,
     '<br />',
     `(commit <a href="https://github.com/git-for-windows/git/commit/${commit}">${commit}</a>)</h2>\n`,
     '\n',

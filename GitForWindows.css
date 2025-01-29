@@ -374,8 +374,11 @@ footer li {
 	clear: both;
 }
 
-.ref {
-	float: right;
-	font-size: 16px;
-	padding-right: 1em;
+.anchor {
+	transform: translateX(-80%) scale(.6);
+	position: absolute;
+}
+
+h2:not(:hover) .anchor {
+	display: none;
 }
