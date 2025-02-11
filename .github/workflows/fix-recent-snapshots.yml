@@ -1,0 +1,62 @@
+name: Upload missing installers
+
+on: [push]
+
+jobs:
+  upload-missing:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/create-github-app-token@v1
+        id: token
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            git-snapshots
+            git-for-windows-automation
+      - name: backfill missing installers
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          set -ex
+          for logs_url in $(gh api \
+            repos/git-for-windows/git-for-windows-automation/actions/workflows/upload-snapshot.yml/runs \
+            --jq '.workflow_runs[].logs_url')
+          do
+            gh api "${logs_url#https://api.github.com/}" >logs.zip
+            unzip -p logs.zip upload-snapshot/\*_download\ remaining\ artifacts.txt >log.txt
+            test -s log.txt
+            sed -n \
+              's:.*   "\(installer\|portable\)\(.*\)/\(Portable\)\?\(.*[^z]\)\(\.7z\)\?\(\.exe\).*:installer\2 \4\6:p' \
+              <log.txt >potentials.txt
+            test -s potentials.txt
+            sort <potentials.txt >sorted.txt
+            uniq -u <sorted.txt >list.txt
+
+            test -s list.txt || continue
+
+            tag_name="$(sed -n '1s/.* Git-\(.*\)-\(arm64\|64-bit\|32-bit\)\.exe.*/\1/p' list.txt)"
+
+            sed -n 's/.* \(I686\|X86_64\|AARCH64\)\(_WORKFLOW_RUN_ID\): \([0-9]*\)$/\1\2=\3/p' <log.txt >run-ids.txt
+            test 3 = $(wc -l <run-ids.txt)
+            eval "$(tr A-Z a-z <run-ids.txt)"
+
+            while read asset file
+            do
+              arch=${asset#*-} &&
+              eval run_id=\$${arch}_workflow_run_id &&
+              echo "Downloading $asset from $run_id" &&
+              rm -f package-versions.txt sha256sums.txt &&
+              ls -lart &&
+              gh -R git-for-windows/git-for-windows-automation run download $run_id --name "$asset" ||
+              exit 1
+            done <list.txt
+
+            files="$(cut -d ' ' -f 2 <list.txt)"
+
+            gh release upload -R ${{ github.repository }} "$tag_name" $files ||
+            exit 1
+          done
