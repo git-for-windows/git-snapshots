@@ -23,7 +23,7 @@ const main = async (...args) => {
   const addURL = url => {
     const fileName = url.replace(/.*\//, '')
     const match = fileName.match(fileNameRegex)
-    if (!match) throw new Error(`Cannot parse URL: ${url}`)
+    if (!match) throw new Error(`Cannot parse URL: ${url} (fileName: ${fileName})`)
     else if (match[1]) urls.installers.push({ url, cpu: cpus[match[2]] })
     else if (match[3]) urls.portableGits.push({ url, cpu: cpus[match[4]] })
     else if (match[5]) urls.busyBoxMinGits.push({ url, cpu: cpus[match[6]] })
@@ -31,6 +31,7 @@ const main = async (...args) => {
     else throw new Error(`Cannot parse URL: ${url}`)
   }
 
+  let mode = 'append-to-top'
   let date
   let commit
   while (args.length > 0) {
@@ -38,7 +39,40 @@ const main = async (...args) => {
     if (arg.startsWith('--date=')) date = arg.replace(/.*?=/, '')
     else if (arg.startsWith('--commit=')) commit = arg.replace(/.*?=/, '')
     else if (arg.startsWith('https://')) addURL(arg)
-    else {
+    else if (arg.startsWith('--backfill-release=')) {
+      if (args.length) throw new Error(`--backfill-release cannot be combined with other arguments!`)
+      const tagName = arg.replace(/.*?=/, '')
+        .replace(/^https:\/\/github\.com\/git-for-windows\/git\/releases\/tag\//, '')
+      if (!tagName.match(/^v[1-9][0-9]*(\.\d+){2}(-rc\d+)?\.windows\.\d+$/)) {
+        throw new Error(`Unexpected tag format: '${tagName}'!`)
+      }
+
+      const gh = async (path) =>
+        (await fetch(`https://api.github.com/repos/git-for-windows/git/${path}`)).json()
+      const { object: { sha: tagSHA } } = await gh(`git/ref/tags/${tagName}`)
+      const { object: { sha: commitSHA } } = await gh(`git/tags/${tagSHA}`)
+      commit = commitSHA
+      const { committer: { date: commitDate } } = await gh(`git/commits/${commitSHA}`)
+      date = (new Date(commitDate)).toLocaleString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        hourCycle: "h24",
+        minute: '2-digit',
+        second: '2-digit',
+        timeZoneName: 'longOffset',
+        timeZone: "Etc/UTC"
+      })
+
+      const { assets } = await gh(`releases/tags/${tagName}`)
+      assets.forEach(asset => {
+        if (!asset.name.endsWith('.tar.bz2') && !asset.name.startsWith('pdbs')) addURL(asset.browser_download_url)
+      })
+
+      mode = 'insert-by-date'
+    } else {
       throw new Error(`Unhandled argument '${arg}`)
     }
   }
@@ -87,7 +121,12 @@ const main = async (...args) => {
     '</ul>'
   ].join('')
 
-  sections[1] = `${insert}\n\n${sections[1]}`
+  let index = 1
+  if (mode === 'insert-by-date') {
+    while (index + 2 < sections.length && insert.localeCompare(sections[index]) < 0) index += 2
+  } else if (mode !== 'append-to-top') throw new Error(`Unhandled mode: '${mode}'`)
+  sections[index] = `${insert}\n\n${sections[index]}`
+
   fs.writeFileSync('index.html', sections.join(''))
 }
 
