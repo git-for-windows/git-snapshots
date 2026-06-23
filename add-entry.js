@@ -5,6 +5,7 @@ const main = async (...args) => {
     '64-bit': { label: 'x64 (64-bit)', rank: 3 },
     'arm64': { label: 'ARM64', rank: 2 },
     '32-bit': { label: 'x86 (32-bit)', rank: 1 },
+    'ucrt64': { label: 'UCRT64', rank: 0 },
   }
   const urls = {
     installers: [],
