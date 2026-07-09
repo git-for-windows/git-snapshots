@@ -40,6 +40,7 @@ const main = async (...args) => {
     if (arg.startsWith('--date=')) date = arg.replace(/.*?=/, '')
     else if (arg.startsWith('--commit=')) commit = arg.replace(/.*?=/, '')
     else if (arg.startsWith('https://')) addURL(arg)
+    else if (arg === '--insert-by-date') mode = 'insert-by-date'
     else if (arg.startsWith('--backfill-release=')) {
       if (args.length) throw new Error(`--backfill-release cannot be combined with other arguments!`)
       const tagName = arg.replace(/.*?=/, '')
