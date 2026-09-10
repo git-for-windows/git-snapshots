@@ -6,6 +6,7 @@ const main = async (...args) => {
     'arm64': { label: 'ARM64', rank: 2 },
     '32-bit': { label: 'x86 (32-bit)', rank: 1 },
     'ucrt64': { label: 'UCRT64', rank: 0 },
+    'mingw64': { label: 'MINGW64', rank: 0 },
   }
   const urls = {
     installers: [],
